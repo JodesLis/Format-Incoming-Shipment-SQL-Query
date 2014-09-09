@@ -22,26 +22,21 @@ SUPPLIER_DICT = {"SUM998": "Sumiati",
                  "Qay999": "Qayyum Exports"}
 
 
-def photo_list_dict():
+def check_for_photo(new_items):
     """
     crawls images directory and produces a list of all
     photos taken after 2010
     """
-    photo_list = []
-    code_dict = {}
-    os.chdir("i:\sales\images")
-    for photo in os.listdir("I:\sales\images"):
-        date_mod = datetime.datetime.fromtimestamp(
-            os.path.getmtime(photo))
-        if date_mod.year > 2010:
-            photo_list.append(photo.upper()[0:7])
-    for code in photo_list:
-        if code[0] not in code_dict:
-            code_dict[code[0]] = []
-            code_dict[code[0]].append(code[0:7])
-        else:
-            code_dict[code[0]].append(code[0:7])
-    return code_dict
+    image_dir = 'i:\sales\images\\'
+    found = []
+    codes = [item[2] for item in new_items]
+    for code in codes:
+        full_path = image_dir + code + ".jpg"
+        if os.path.isfile(full_path):
+            if datetime.datetime.fromtimestamp(
+                    os.path.getmtime(full_path)).year > 2010:
+                found.append(code)
+    return found
 
 
 def read_csv_in(input_file):
@@ -63,15 +58,12 @@ def build_output_list(new_items, photo_list):
     for line in new_items:
         photo = ""
         supplier_full = line[4]
-        try:
-            if line[2] in photo_list[line[2][0]]:
-                photo = "Saddhayu"
-        except KeyError:
-            photo = "Error"
+        if line[2] in photo_list:
+            photo = "Saddhayu"
         if line[4] in SUPPLIER_DICT:
             supplier_full = SUPPLIER_DICT[line[4]]
         tidy_list.append([line[0], line[1], line[2], line[3],
-                         supplier_full, photo])
+                         supplier_full, " ", photo])
     return tidy_list
 
 
@@ -89,10 +81,8 @@ def main():
     main loop
     """
     input_file = raw_input("Enter the csv file name: ")
-    starting_path = os.getcwd()
     new_items = read_csv_in(input_file)
-    photo_list = photo_list_dict()
-    os.chdir(starting_path)
+    photo_list = check_for_photo(new_items)
     tidy_list = build_output_list(new_items, photo_list)
     write_csv(tidy_list, input_file)
 
